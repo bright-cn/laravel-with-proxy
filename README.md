@@ -225,22 +225,22 @@ use Illuminate\Support\Facades\Http;
 class IPController extends Controller
 {
 
-public function getIP(): JsonResponse
-{
-// 代理服务器的 URL
-$proxyUrl = 'http://66.29.154.103:3128'; // 将其替换为你的代理 URL
+    public function getIP(): JsonResponse
+    {
+        // the URL of the proxy server
+        $proxyUrl = 'http://66.29.154.103:3128'; // replace with your proxy URL
 
-// 通过代理服务器向 /ip 端点发起 GET 请求
-$response = Http::withOptions([
-proxy' => $proxyUrl
-])->get('https://httpbin.io/ip');
+        // make a GET request to /ip endpoint through the proxy server
+        $response = Http::withOptions([
+            'proxy' => $proxyUrl
+        ])->get('https://httpbin.io/ip');
 
-// 获取响应数据
-$responseData = $response->json();
+        // retrieve the response data
+        $responseData = $response->json();
 
-// 返回响应数据
-return response()->json($responseData);
-}
+        // return the response data
+        return response()->json($responseData);
+    }
 }
 ```
 
@@ -260,7 +260,7 @@ curl -X GET 'http://localhost:8000/api/v1/get-ip'
 
 ```json
 {
-origin: "66.29.154.103"
+  "origin": "66.29.154.103"
 }
 ```
 
