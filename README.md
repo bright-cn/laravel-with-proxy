@@ -159,7 +159,7 @@ curl -X GET 'http://localhost:8000/api/v1/get-ip'
 
 ```json
 {
-origin: "45.89.222.18"
+  "origin": "45.89.222.18"
 }
 ```
 
