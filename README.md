@@ -1,81 +1,81 @@
 # 在 Laravel 中使用代理
 
-[![Bright Data 促销](https://github.com/bright-cn/LinkedIn-Scraper/raw/main/Proxies%20and%20scrapers%20GitHub%20bonus%20banner.png)](https://www.bright.cn/)
+[![Bright Data 推广](https://github.com/bright-cn/Awesome-Web-Scraping/raw/main/Proxies%20and%20scrapers%20GitHub%20bonus%20banner%20CN.png)](https://www.bright.cn/)
 
-本指南解释如何在 Laravel 项目中配置与实现代理，用于不被封锁的网页抓取与地理访问控制。
+本指南介绍如何在 Laravel 项目中配置和实现代理，以进行不受阻碍的网页爬虫和地理访问控制。
 
-- [什么是 Laravel 代理？](#什么是-Laravel-代理)
-- [Laravel 中代理的使用场景](#Laravel-中代理的使用场景)
-- [在 Laravel 中使用代理：分步指南](#在-Laravel-中使用代理-分步指南)
-- [高级用法](#高级用法)
-- [在 Laravel 中使用 Bright Data 代理](#在-Laravel-中使用-Bright-Data-代理)
-- [额外：Symfony 的 HttpClient 代理集成](#额外-Symfony-的-HttpClient-代理集成)
+- [什么是 Laravel 代理？](#什么是-laravel-代理)
+- [代理在 Laravel 中的用例](#代理在-laravel-中的用例)
+- [在 Laravel 中使用代理：分步指南](#在-laravel-中使用代理分步指南)
+- [高级用例](#高级用例)
+- [在 Laravel 中使用 Bright Data 代理](#在-laravel-中使用-bright-data-代理)
+- [附加内容：Symfony 的 `HttpClient` 代理集成](#附加内容-symfony-的-httpclient-代理集成)
 
 ## 什么是 Laravel 代理？
 
-Laravel 代理在你的 Laravel 应用与外部服务器之间充当中间人。它允许你以编程方式将服务器流量[通过代理服务器](https://www.bright.cn/blog/proxy-101/what-is-proxy-server)转发，以隐藏你的 IP 地址。
+Laravel 代理充当 Laravel 应用程序与外部服务器之间的中间层。它允许你通过编程方式将服务器流量[经由代理服务器](https://www.bright.cn/blog/proxy-101/what-is-proxy-server)转发，从而隐藏你的 IP 地址。
 
-在 Laravel 中，代理的工作方式如下：
+以下是代理在 Laravel 中的工作方式：
 
-1. Laravel 使用配置了代理的 HTTP 客户端库发起 HTTP 请求。
-2. 请求通过代理服务器传输。
+1. Laravel 使用已配置代理的 HTTP 客户端库发起 HTTP 请求。
+2. 请求经由代理服务器传输。
 3. 代理将请求转发到目标服务器。
-4. 目标服务器将响应返回给代理。
+4. 目标服务器将响应发送回代理。
 5. 代理将响应转发给 Laravel。
 
-因此，目标服务器看到的请求来源是代理的 IP，而不是你的 Laravel 服务器地址。该机制可用于绕过地理限制、增强匿名性以及处理速率限制。
+因此，目标服务器看到请求来自代理的 IP，而不是 Laravel 服务器的地址。借助这一机制，你可以绕过地理限制、增强匿名性并应对速率限制。
 
-## Laravel 中代理的使用场景
+## 代理在 Laravel 中的用例
 
-Laravel 中的代理用途广泛，以下三种最为常见：
+代理在 Laravel 中有许多用途，以下三种尤为常见：
 
-- 网页抓取：在创建网页抓取 API 时使用代理，避免 IP 封禁、绕过限流或其他限制。更多信息可阅读我们的[使用 Laravel 进行网页抓取教程](https://www.bright.cn/blog/web-data/web-scraping-with-laravel)。
-- 绕过第三方 API 的限流：在代理 IP 间轮换，从而保持在 API 配额内并避免被限速。
-- 访问地域受限内容：选择特定位置的代理服务器，以使用仅在某些国家可用的服务。
+- **网页爬虫**：在创建网页爬虫工具 API 时使用代理，以防止 IP 被封、绕过速率限制或规避其他限制。有关更多信息，请阅读我们的 [Laravel 网页爬虫教程](https://www.bright.cn/blog/web-data/web-scraping-with-laravel)。
+- **绕过第三方 API 的速率限制**：轮换使用代理 IP，以确保不超出 API 使用配额并避免受到限流。
+- **访问受地理限制的内容**：选择位于特定地区的代理服务器，以使用仅在特定国家/地区提供的服务。
 
-更多示例请参阅我们的[网络数据与代理使用场景指南](https://www.bright.cn/use-cases)。
+有关更多示例，请参阅我们的[网页数据和代理用例指南](https://www.bright.cn/use-cases)。
 
 ## 在 Laravel 中使用代理：分步指南
 
-本节我们将演示如何使用[默认 HTTP 客户端](https://laravel.com/docs/master/http-client)在 Laravel 中接入代理。稍后也会介绍使用 [Symfony `HttpClient`](https://symfony.com/doc/current/http_client.html) 库的代理集成。
+在本节中，我们将演示如何使用[默认 HTTP 客户端](https://laravel.com/docs/master/http-client)将代理集成到 Laravel 中。本文后面还将介绍如何与 [Symfony `HttpClient`](https://symfony.com/doc/current/http_client.html) 库集成代理。
 
-> 注意：
->
-> Laravel 的 HTTP 客户端构建于 Guzzle 之上，你可能也想查看我们的 [Guzzle 代理集成指南](https://www.bright.cn/blog/how-tos/proxy-with-guzzle)。
+> **注意**：
+> 
+> Laravel 的 HTTP 客户端基于 Guzzle 构建，因此你可能还需要查看我们的 [Guzzle 代理集成指南](https://www.bright.cn/blog/how-tos/proxy-with-guzzle)。
 
-作为示例，我们将创建一个 `GET` `/api/v1/get-ip` 端点，其将：
+为了演示集成过程，我们将建立一个 `GET` `/api/v1/get-ip` 端点，该端点将：
 
-1. 使用已配置的代理向 [`https://httpbin.io/ip`](https://httpbin.io/ip) 发送 `GET` 请求；
-2. 从响应中提取出口 IP 地址；
-3. 将该 IP 返回给调用该 Laravel 端点的客户端。
+1. 使用配置的代理向 [`https://httpbin.io/ip`](https://httpbin.io/ip) 发送 `GET` 请求。
+2. 从响应中提取出口 IP 地址。
+3. 将该 IP 返回给调用 Laravel 端点的客户端。
 
-如果配置正确，API 返回的 IP 将与代理的 IP 地址一致。
+如果一切配置正确，API 返回的 IP 将与代理的 IP 地址一致。
 
-### 第一步：项目初始化
+### 步骤 1：项目设置
 
-如果你已有配置好的 Laravel 应用，可直接跳到第二步。
+如果你已经配置好 Laravel 应用程序，可以直接跳到步骤 2。
 
-否则，按照以下步骤创建一个新的 Laravel 项目。在终端执行以下 Composer [`create-project`](https://getcomposer.org/doc/03-cli.md#create-project) 命令初始化一个全新的 Laravel 项目：
+否则，请按照以下说明创建新的 Laravel 项目。打开终端并执行以下 Composer [`create-command`](https://getcomposer.org/doc/03-cli.md#create-project)，以初始化一个全新的 Laravel 项目：
 
 ```sh
 composer create-project laravel/laravel laravel-proxies-application
 ```
 
-该命令会在名为 `laravel-proxies-application` 的目录中创建一个新的 Laravel 项目。使用你喜欢的 PHP IDE 打开此文件夹。
+此命令将在名为 `laravel-proxies-application` 的目录中创建一个新的 Laravel 项目。使用你常用的 PHP IDE 打开此文件夹。
 
-此时，目录应包含标准的 Laravel 项目结构：
+此时，该目录应包含标准的 Laravel 文件结构：
 
 ![Laravel 项目结构](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/The-Laravel-projext-structure.png)
 
-### 第二步：定义测试 API 端点
+### 步骤 2：定义测试 API 端点
 
-在项目目录中，执行如下 [Artisan 命令](https://laravel.com/docs/11.x/artisan)以生成一个新的控制器：
+在项目目录中执行以下 [Artisan 命令](https://laravel.com/docs/11.x/artisan)，以生成新的控制器：
 
 ```sh
 php artisan make:controller IPController
 ```
 
-这会在 `/app/Http/Controllers` 目录下创建名为 `IPController.php` 的文件，默认内容如下：
+这将在 `/app/Http/Controllers` 目录中创建名为 `IPController.php` 的文件，其中包含以下默认内容：
 
 ```php
 <?php
@@ -86,42 +86,42 @@ use Illuminate\Http\Request;
 
 class IPController extends Controller
 {
-//
+    //
 }
 ```
 
-现在，将下面的 `getIP()` 方法添加到 `IPController.php` 中：
+现在，将下面的 `getIP()` 方法添加到 `IPController.php`：
 
 ```php
 public function getIP(): JsonResponse
 {
-// 通过 "/ip" 端点发起 GET 请求以获取服务器的 IP
-$response = Http::get('https://httpbin.io/ip');
+    // make a GET request to the "/ip" endpoint to get the IP of the server
+    $response = Http::get('https://httpbin.io/ip'); 
 
-// 获取响应数据
-$responseData = $response->json();
+    // retrieve the response data
+    $responseData = $response->json();
 
-// 返回响应数据
-return response()->json($responseData);
+    // return the response data 
+    return response()->json($responseData);
 }
 ```
 
-该方法使用 Laravel 的 `Http` 客户端从 `https://httpbin.io/ip` 获取你的 IP 地址，并以 JSON 返回。
+此方法使用 Laravel 的 `Http` 客户端从 `https://httpbin.io/ip` 获取你的 IP 地址，并以 JSON 格式返回。
 
-记得引入以下两个类：
+请记得添加以下两个 import：
 
 ```php
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
 ```
 
-如果你希望 Laravel 应用提供无状态 API，使用 [`install:api`](https://laravel.com/docs/master/routing#api-routes) Artisan 命令启用 API 路由：
+由于你希望 Laravel 应用程序提供无状态 API，请使用 [`install:api`](https://laravel.com/docs/master/routing#api-routes) Artisan 命令启用 API 路由：
 
 ```sh
 php artisan install:api
 ```
 
-为了通过 API 端点暴露该方法，在 `routes/api.php` 文件中添加以下路由：
+要通过 API 端点公开此方法，请将以下路由添加到 `routes/api.php` 文件：
 
 ```php
 use App\Http\Controllers\IPController;
@@ -129,15 +129,15 @@ use App\Http\Controllers\IPController;
 Route::get('/v1/get-ip', [IPController::class, 'getIP']);
 ```
 
-你的新 API 端点地址为：
+你的新 API 端点可通过以下地址访问：
 
 ```php
 /api/v1/get-ip
 ```
 
-注意：默认情况下，所有 Laravel API 都在 `/api` 路径下。
+**注意**：请记住，默认情况下，所有 Laravel API 都位于 `/api` 路径下。
 
-现在来测试 `/api/v1/get-ip` 端点！
+现在可以测试 `/api/v1/get-ip` 端点了！
 
 运行以下命令启动 Laravel 开发服务器：
 
@@ -145,17 +145,17 @@ Route::get('/v1/get-ip', [IPController::class, 'getIP']);
 php artisan serve
 ```
 
-你的服务器现在应在本地监听 `8000` 端口。
+服务器现在应在本地监听 `8000` 端口。
 
-使用 cURL 调用 `/api/v1/get-ip` 端点：
+使用 cURL 向 `/api/v1/get-ip` 端点发送 `GET` 请求：
 
 ```sh
-curl -X GET 'http://localhost:8000/api/v1/get-ip'
+curl -X GET 'http://localhost:8000/api/v1/get-ip' 
 ```
 
-注意：在 Windows 上，将 `curl` 替换为 `curl.exe`。更多内容参见我们关于[如何用 cURL 发送 GET 请求](https://www.bright.cn/faqs/curl/curl-get-requests)的指南。
+**注意**：在 Windows 上，请将 `curl` 替换为 `curl.exe`。更多信息请参阅我们的[如何使用 cURL 发送 GET 请求指南](https://www.bright.cn/faqs/curl/curl-get-requests)。
 
-你应收到类似如下的响应：
+你应该会收到类似以下内容的响应：
 
 ```json
 {
@@ -163,13 +163,13 @@ curl -X GET 'http://localhost:8000/api/v1/get-ip'
 }
 ```
 
-该响应与 HttpBin 的 `/ip` 端点输出完全一致，证实你的 Laravel API 工作正常。具体而言，显示的 IP 地址是你机器的公网 IP。
+此响应与 HttpBin 的 `/ip` 端点生成的结果完全一致，证明你的 Laravel API 运行正常。具体而言，显示的 IP 地址是你计算机的公网 IP。
 
-### 第三步：获取代理
+### 步骤 3：获取代理
 
-在 Laravel 应用中使用代理，首先需要一个可用的代理服务器。
+要在 Laravel 应用程序中使用代理，你首先需要有权访问正常运行的代理服务器。
 
-典型的代理 URL 格式如下：
+典型的代理 URL 采用以下格式：
 
 ```
 <protocol>://<host>:<port>
@@ -177,41 +177,41 @@ curl -X GET 'http://localhost:8000/api/v1/get-ip'
 
 其中：
 
-- `protocol` 是连接代理服务器所需的协议（如 `http`、`https`、`socks5`）
+- `protocol` 是连接代理服务器所需的协议（例如 `http`、`https`、`socks5`）
 - `host` 是代理服务器的 IP 地址或域名
-- `port` 是转发流量所使用的端口
+- `port` 是用于路由流量的端口
 
-在本示例中，假设你的代理 URL 为：
+在本例中，假设你的代理 URL 为：
 
 ```
 http://66.29.154.103:3128
 ```
 
-将其保存在 `getIP()` 方法中的变量里：
+将其存储在 `getIP()` 方法中的一个变量内：
 
 ```php
 $proxyUrl = 'http://66.29.154.103:3128';
 ```
 
-### 第四步：在 `Http` 中集成代理
+### 步骤 4：在 `Http` 中集成代理
 
-使用 `Http` 客户端在 Laravel 中集成代理，只需极少配置：
+使用 `Http` 客户端将代理集成到 Laravel 中只需少量额外配置：
 
 ```php
 $proxyUrl = 'http://66.29.154.103:3128';
 
 $response = Http::withOptions([
-proxy' => $proxyUrl
+    'proxy' => $proxyUrl
 ])->get('https://httpbin.io/ip');
 
 $responseData = $response->json();
 ```
 
-你需要通过 [`withOptions()`](https://laravel.com/docs/11.x/http-client#guzzle-options) 方法传入代理 URL。这样即指示 Laravel 的 HTTP 客户端使用 [Guzzle 的 `proxy` 选项](https://docs.guzzlephp.org/en/stable/request-options.html#proxy)将请求经由指定代理服务器转发。
+你需要使用 [`withOptions()`](https://laravel.com/docs/11.x/http-client#guzzle-options) 方法将代理 URL 作为选项传入。这会指示 Laravel 的 HTTP 客户端使用 [Guzzle 的 `proxy` 选项](https://docs.guzzlephp.org/en/stable/request-options.html#proxy)，通过指定的代理服务器路由请求。
 
-### 第五步：整合
+### 步骤 5：整合所有内容
 
-集成代理后的 Laravel API 最终逻辑应如下所示：
+集成代理后，最终的 Laravel API 逻辑应如下所示：
 
 ```php
 <?php
@@ -244,19 +244,19 @@ class IPController extends Controller
 }
 ```
 
-通过本地运行 Laravel 进行测试：
+在本地运行 Laravel 进行测试：
 
 ```sh
 php artisan serve
 ```
 
-然后再次访问 `/api/v1/get-ip` 端点：
+然后再次连接到 `/api/v1/get-ip` 端点：
 
 ```sh
-curl -X GET 'http://localhost:8000/api/v1/get-ip'
+curl -X GET 'http://localhost:8000/api/v1/get-ip' 
 ```
 
-这一次，输出应类似：
+这一次，输出应类似于：
 
 ```json
 {
@@ -264,35 +264,35 @@ curl -X GET 'http://localhost:8000/api/v1/get-ip'
 }
 ```
 
-`"origin"` 字段显示的是代理服务器的 IP 地址，表明你的真实 IP 已被代理隐藏。
+`"origin"` 字段显示代理服务器的 IP 地址，证明你的真实 IP 现已隐藏在代理之后。
 
-> 警告：
->
-> 免费代理服务器通常不稳定或寿命较短。当你尝试时，示例代理可能已不可用。如有需要，在测试前用当前可用的代理替换 `$proxyUrl`。
+> **警告**：
+> 
+> 免费代理服务器通常不稳定或存续时间很短。当你尝试此示例时，示例代理可能已无法使用。如有必要，请在测试前将 `$proxyUrl` 替换为当前可用的代理。
 
-如果在发起请求时遇到 SSL 错误，请参考下文高级用法部分提供的故障排除建议。
+如果发送请求时遇到 SSL 错误，请参阅下方高级用例部分提供的故障排除建议。
 
-## 高级用法
+## 高级用例
 
-你已经掌握了在 Laravel 中使用代理的基础，下面再介绍一些高级场景。
+你已经掌握了在 Laravel 中集成代理的基础知识，但还有一些高级场景值得了解。
 
-### 代理认证
+### 代理身份验证
 
-高品质（付费）代理通常要求认证，以确保只有授权用户能访问。若缺少正确凭据，你将会遇到如下错误：
+付费代理通常需要身份验证，以确保只有获得授权的用户才能访问。如果没有正确的凭据，你会遇到以下错误：
 
 ```
 cURL error 56: CONNECT tunnel failed, response 407
 ```
 
-带认证的代理 URL 通常使用以下格式：
+经过身份验证的代理 URL 通常采用以下格式：
 
 ```
 <protocol>://<username>:<password>@<host>:<port>
 ```
 
-其中 `username` 和 `password` 为认证凭据。
+其中，`username` 和 `password` 是你的身份验证凭据。
 
-Laravel 的 `Http` 类（底层使用 Guzzle）完全支持认证代理，只需做很少修改——将认证信息直接写入代理 URL 即可：
+Laravel 的 `Http` 类（底层使用 Guzzle）完全支持经过身份验证的代理。只需稍作修改，直接在代理 URL 中包含身份验证凭据即可：
 
 ```php
 $proxyUrl = '<protocol>://<username>:<password>@<host>:<port>';
@@ -301,65 +301,65 @@ $proxyUrl = '<protocol>://<username>:<password>@<host>:<port>';
 例如：
 
 ```php
-// 使用带用户名和密码的认证代理
+// authenticated proxy with username and password
 $proxyUrl = 'http://<username>:<password>@<host>:<port>';
 
 $response = Http::withOptions([
-proxy' => $proxyUrl
+    'proxy' => $proxyUrl
 ])->get('https://httpbin.io/ip');
 ```
 
-用有效的认证代理 URL 替换 `$proxyUrl` 的值。
+将 `$proxyUrl` 的值替换为有效且包含身份验证信息的代理 URL。
 
-`Http` 现在会将流量定向到你配置的认证代理服务器！
+`Http` 现在会将流量转发到已配置且经过身份验证的代理服务器！
 
 ### 避免 SSL 证书问题
 
-在使用 Laravel 的 `Http` 客户端配置代理时，请求可能因 SSL 证书验证错误而失败，例如：
+使用 Laravel 的 `Http` 客户端配置代理时，你的请求可能会因为类似以下的 SSL 证书验证错误而失败：
 
 ```
 cURL error 60: SSL certificate problem: self-signed certificate in certificate chain
 ```
 
-这通常发生在代理服务器使用了自签名的[SSL 证书](https://www.cloudflare.com/learning/ssl/what-is-an-ssl-certificate/)。
+当代理服务器使用自签名 [SSL 证书](https://www.cloudflare.com/learning/ssl/what-is-an-ssl-certificate/)时，通常会发生这种情况。
 
-如果你信任该代理服务器，并且只是在本地或安全环境中测试，你可以临时禁用 SSL 验证：
-
-```php
-$response = Http::withOptions([
-proxy' => $proxyUrl,
-verify' => false, // 禁用 SSL 证书验证
-])->get('https://httpbin.io/ip');
-```
-
-> 警告：
->
-> 禁用 SSL 验证会让你容易遭受中间人攻击。仅在可信环境中使用此选项。
-
-或者，如果你拥有[代理服务器的证书文件](https://docs.www.bright.cn/general/account/ssl-certificate)（例如 `proxy-ca.crt`），可以使用它进行 SSL 验证：
+如果你信任该代理服务器，并且仅在本地或安全环境中进行测试，可以禁用 SSL 验证：
 
 ```php
 $response = Http::withOptions([
-proxy' => $proxyUrl,
-verify' => storage_path('certs/proxy-ca.crt'), // CA 包路径
+    'proxy' => $proxyUrl,
+    'verify' => false, // disable SSL certificate verification
 ])->get('https://httpbin.io/ip');
 ```
 
-确保 `proxy-ca.crt` 文件存储在安全且可访问的目录（如 `storage/certs/`），并且 Laravel 具有读取权限。
+> **警告**：
+> 
+> 禁用 SSL 验证会使你容易受到中间人攻击。仅在可信环境中使用此选项。
 
-采用上述任一方式后，由代理引起的 SSL 验证错误应能得到解决。
+或者，如果你有[代理服务器的证书文件](https://docs.brightdata.com/general/account/ssl-certificate)（例如 `proxy-ca.crt`），可以使用它进行 SSL 验证：
+
+```php
+$response = Http::withOptions([
+    'proxy' => $proxyUrl,
+    'verify' => storage_path('certs/proxy-ca.crt'), // Path to the CA bundle
+])->get('https://httpbin.io/ip');
+```
+
+请确保 `proxy-ca.crt` 文件存储在安全且可访问的目录中（例如 `storage/certs/`），并且 Laravel 拥有读取权限。
+
+采用上述任一方法后，代理引起的 SSL 验证错误都应得到解决。
 
 ### 代理轮换
 
-如果你反复使用同一代理服务器，目标网站最终很可能会识别并封禁该代理 IP。为避免这种情况，你可以[轮换代理服务器](https://www.bright.cn/blog/how-tos/how-to-rotate-an-ip-address)——每次请求使用不同的代理。
+如果重复使用同一台代理服务器，目标网站最终很可能会检测并封禁该代理的 IP 地址。为防止这种情况，你可以[轮换代理服务器](https://www.bright.cn/blog/how-tos/how-to-rotate-an-ip-address)，即为每个请求使用不同的代理。
 
 在 Laravel 中轮换代理的步骤如下：
 
-1. 创建一个包含多个代理 URL 的数组；
-2. 在每次请求前随机选择一个；
-3. 在 HTTP 客户端配置中设置所选代理。
+1. 创建一个包含多个代理 URL 的数组
+2. 在每次请求前随机选择一个
+3. 在 HTTP 客户端配置中设置所选代理
 
-实现代码如下：
+使用以下代码实现：
 
 ```php
 <?php
@@ -372,75 +372,75 @@ use Illuminate\Support\Facades\Http;
 
 function getRandomProxyUrl(): string
 {
-// 有效代理 URL 列表（替换为你的代理列表）
-$proxies = [
-<protocol_1>://<proxy_host_1>:<port_1>',
-// ...
-<protocol_n>://<proxy_host_n>:<port_n>',
-];
+    // a list of valid proxy URLs (replace with your proxy URLs)
+    $proxies = [
+        '<protocol_1>://<proxy_host_1>:<port_1>', 
+        // ...
+        '<protocol_n>://<proxy_host_n>:<port_n>',
+    ];
 
-// 从列表中随机返回一个代理 URL
-return $proxies[array_rand($proxies)];
+    // return a proxy URL randomly picked from the list
+    return $proxies[array_rand($proxies)];
 }
 
 class IPController extends Controller
 {
-public function getIP(): JsonResponse
-{
-// 代理服务器的 URL
-$proxyUrl = getRandomProxyUrl();
-// 通过代理服务器向 /ip 端点发起 GET 请求
-$response = Http::withOptions([
-proxy' => $proxyUrl
-])->get('https://httpbin.io/ip');
+    public function getIP(): JsonResponse
+    {
+        // the URL of the proxy server
+        $proxyUrl = getRandomProxyUrl();
+        // make a GET request to /ip endpoint through the proxy server
+        $response = Http::withOptions([
+            'proxy' => $proxyUrl
+        ])->get('https://httpbin.io/ip');
 
-// 获取响应数据
-$responseData = $response->json();
+        // retrieve the response data
+        $responseData = $response->json();
 
-// 返回响应数据
-return response()->json($responseData);
-}
+        // return the response data
+        return response()->json($responseData);
+    }
 }
 ```
 
-上述代码演示了如何从列表中随机选择代理以实现代理轮换。但此方法有以下局限：
+此代码片段演示了如何从列表中随机选择代理，以实现代理轮换。虽然这种方法有效，但也存在局限性：
 
-1. 你需要维护一组可靠的代理服务器，这通常会产生成本；
-2. 若要有效轮换，代理池必须足够大；否则同一代理会被频繁使用，易被识别并封禁。
+1. 你必须维护一组可靠的代理服务器，而这通常需要付费。
+2. 要实现有效轮换，代理池必须足够大。如果代理数量不足，将重复使用相同的服务器，可能导致被检测和封禁。
 
-为克服这些挑战，可考虑使用 [Bright Data 的轮换代理网络](https://www.bright.cn/solutions/rotating-proxies)。
+要克服这些难题，可以考虑使用 [Bright Data 的动态代理网络](https://www.bright.cn/solutions/rotating-proxies)。
 
 ## 在 Laravel 中使用 Bright Data 代理
 
 按照以下步骤在 Laravel 中使用 Bright Data 的住宅代理。
 
-如果你还没有账号，请[注册 Bright Data](https://www.bright.cn/cp/start)。如果已有账号，请登录访问你的用户仪表盘：
+如果你还没有账户，请[注册 Bright Data](https://www.bright.cn/cp/start)。如果已有账户，请登录并访问用户控制面板：
 
-![Bright Data 仪表盘](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/The-Bright-Data-dashboard.png)
+![Bright Data 控制面板](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/The-Bright-Data-dashboard.png)
 
-登录后，点击“Get proxy products”按钮：
+登录后，点击“获取代理产品”按钮：
 
-![点击 “Get proxy products” 按钮](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/Clicking-the-Get-proxy-products-button.png)
+![点击“获取代理产品”按钮](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/Clicking-the-Get-proxy-products-button.png)
 
-你将被引导至 “Proxies & Scraping Infrastructure” 页面：
+你将进入“代理和抓取基础设施”页面：
 
-![“Proxies & Scraping Infrastructure” 页面](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/The-Proxies-Scraping-Infrastructure-page-1.png)
+![“代理和抓取基础设施”页面](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/The-Proxies-Scraping-Infrastructure-page-1.png)
 
-在表格中找到 “Residential” 行并点击：
+在表格中找到“住宅代理”行并点击：
 
-![点击 “residential” 行](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/Clicking-the-residential-row.png)
+![点击“住宅代理”行](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/Clicking-the-residential-row.png)
 
-进入住宅代理页面：
+你将进入住宅代理页面：
 
-![“residential” 页面](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/The-residential-page.png)
+![“住宅代理”页面](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/The-residential-page.png)
 
-首次使用时，请根据引导向导按需配置代理服务。如需额外帮助，欢迎[联系其 24/7 支持团队](https://www.bright.cn/contact)。
+首次使用时，请按照设置向导根据你的要求配置代理服务。如需更多帮助，可随时[联系其全天候支持团队](https://www.bright.cn/contact)。
 
-在 “Overview” 选项卡中，找到你的代理主机、端口、用户名和密码：
+在“概览”选项卡中，找到代理的主机、端口、用户名和密码：
 
 ![代理凭据](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/The-proxy-credentials.png)
 
-使用这些信息构造你的代理 URL：
+使用这些信息构建代理 URL：
 
 ```php
 $proxyUrl = 'http://<brightdata_proxy_username>:<brightdata_proxy_password>@<brightdata_proxy_host>:<brightdata_proxy_port>';
@@ -448,35 +448,35 @@ $proxyUrl = 'http://<brightdata_proxy_username>:<brightdata_proxy_password>@<bri
 
 将占位符（`<brightdata_proxy_username>`、`<brightdata_proxy_password>`、`<brightdata_proxy_host>`、`<brightdata_proxy_port>`）替换为你的实际代理凭据。
 
-确保将“Off”开关切换为“On”以启用代理产品，并完成其余设置步骤：
+请务必切换“关闭”开关以启用代理产品，并完成其余设置说明：
 
 ![点击启用开关](https://github.com/bright-cn/laravel-with-proxy/blob/main/images/Clicking-the-activation-toggle.png)
 
-配置好代理 URL 后，即可通过 `Http` 客户端将其集成到 Laravel 中。以下示例展示如何通过 Bright Data 的轮换住宅代理在 Laravel 中发送请求：
+配置代理 URL 后，你现在可以使用 `Http` 客户端将其集成到 Laravel 中。以下是在 Laravel 中通过 Bright Data 动态住宅代理发送请求的代码：
 
 ```php
 public function getIp()
 {
-// TODO: 将占位符替换为你的 Bright Data 代理信息
-$proxyUrl = 'http://<brightdata_proxy_username>:<brightdata_proxy_password>@<brightdata_proxy_host>:<brightdata_proxy_port>';
+    // TODO: replace the placeholders with your Bright Data's proxy info
+    $proxyUrl = 'http://<brightdata_proxy_username>:<brightdata_proxy_password>@<brightdata_proxy_host>:<brightdata_proxy_port>';
 
-// 通过代理向 "/ip" 发起 GET 请求
-$response = Http::withOptions([
-proxy' => $proxyUrl,
-])->get('https://httpbin.org/ip');
+    // make a GET request to "/ip" through the proxy
+    $response = Http::withOptions([
+        'proxy' => $proxyUrl,
+    ])->get('https://httpbin.org/ip');
 
-// 获取响应数据
-$responseData = $response->json();
+    // get the response data
+    $responseData = $response->json();
 
-return response()->json($responseData);
+    return response()->json($responseData);
 }
 ```
 
-每次执行该脚本，你都会看到不同的出口 IP。
+每次执行此脚本时，你都会看到不同的出口 IP。
 
-## [额外] Symfony 的 `HttpClient` 代理集成
+## [附加内容] Symfony 的 `HttpClient` 代理集成
 
-如果你更喜欢使用 Symfony 的 `HttpClient` 组件而非 Laravel 默认的 `Http` 客户端，可按以下步骤在 Laravel 中集成 `HttpClient` 的代理。
+如果相比 Laravel 的默认 HTTP 客户端 `Http`，你更倾向于使用 Symfony 的 `HttpClient` 组件，请按照以下说明在 Laravel 中通过 `HttpClient` 实现代理集成。
 
 首先，通过 Composer 安装 Symfony HTTP 客户端包：
 
@@ -484,7 +484,7 @@ return response()->json($responseData);
 composer require symfony/http-client
 ```
 
-接着，可按如下方式在 `HttpClient` 中使用代理：
+接下来，你可以按以下方式将 Symfony 的 `HttpClient` 与代理搭配使用：
 
 ```php
 <?php
@@ -496,36 +496,36 @@ use Illuminate\Http\JsonResponse;
 
 class IpController extends Controller
 {
-// 用于存放 HttpClient 实例
-private $client;
+    // where to store the HttpClient instance
+    private $client;
 
-public function __construct(HttpClientInterface $client)
-{
-// 初始化 HttpClient 私有实例
-$this->client = $client;
-}
+    public function __construct(HttpClientInterface $client)
+    {
+        // initialize the HttpClient private instance
+        $this->client = $client;
+    }
 
-public function getIp(): JsonResponse
-{
-// 你的代理 URL
-$proxyUrl = 'http://66.29.154.103:3128'; // 将其替换为你的代理 URL
+    public function getIp(): JsonResponse
+    {
+          // your proxy URL
+          $proxyUrl = 'http://66.29.154.103:3128'; // replace with your proxy URL
 
-// 通过代理向 "/ip" 端点发起 GET 请求
-$response = $this->client->request('GET', 'https://httpbin.io/ip', [
-proxy' => $proxyUrl,
-]);
+          // make a GET request to the "/ip" endpoint through the proxy
+          $response = $this->client->request('GET', 'https://httpbin.io/ip', [
+              'proxy' => $proxyUrl,
+          ]);
 
-// 解析响应 JSON 并返回
-$responseData = $response->toArray();
-return response()->json($responseData);
-}
+          // parse the response JSON and return it
+          $responseData = $response->toArray();
+          return response()->json($responseData);
+    }
 }
 ```
 
-通过上述配置，你即可使用 Symfony 的 `HttpClient` 通过代理发送请求。
+此配置允许你使用 Symfony 的 `HttpClient` 通过代理发送请求。
 
 ## 总结
 
-免费代理服务通常不可靠且可能存在风险。若要获得一致的性能、安全性与可扩展性，你需要值得信赖的代理提供商。选择行业领先的代理提供商 Bright Data，可节省时间与精力。
+免费代理服务可能不可靠，并且存在潜在风险。要获得稳定的性能、安全性和可扩展性，你需要值得信赖的代理提供商。选择[市场领先的代理提供商](https://www.bright.cn/blog/proxy-101/best-proxy-providers) Bright Data，节省时间和精力。
 
-立即创建账号，免费开始测试我们的代理！
+立即创建账户，开始免费测试我们的代理！
